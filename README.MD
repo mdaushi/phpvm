@@ -39,11 +39,11 @@ PHP 8.1.13
 To **install** or **update** phpvm, run one of the following commands:
 
 ```sh
-curl -o- https://raw.githubusercontent.com/Thavarshan/phpvm/main/bin/install.sh | bash
+curl -o- https://raw.githubusercontent.com/Thavarshan/phpvm/main/install.sh | bash
 ```
 
 ```sh
-wget -qO- https://raw.githubusercontent.com/Thavarshan/phpvm/main/bin/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/Thavarshan/phpvm/main/install.sh | bash
 ```
 
 This script will download and set up `phpvm` in `~/.phpvm`, adding the following to your shell profile (`~/.bashrc`, `~/.zshrc`, or `~/.profile`):
