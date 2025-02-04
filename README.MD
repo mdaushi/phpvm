@@ -9,99 +9,69 @@
 
 ## Introduction
 
-`phpvm` is a PHP Version Manager that allows you to easily install, switch between, and manage multiple PHP versions via the command line.
+`phpvm` is a lightweight PHP Version Manager that allows you to easily install, switch between, and manage multiple PHP versions via the command line.
 
 **Example:**
 
 ```sh
-$ phpvm use 7.4
-Now using PHP v7.4.10
+$ phpvm use 8.2
+Now using PHP v8.2.10
 $ php -v
-PHP 7.4.10
-$ phpvm use 8.0
-Now using PHP v8.0.8
+PHP 8.2.10
+$ phpvm use 8.1
+Now using PHP v8.1.13
 $ php -v
-PHP 8.0.8
+PHP 8.1.13
 ```
 
-## About phpvm
+## Features
 
-`phpvm` is a version manager designed to be used on Unix-like systems, including macOS and Linux. It allows you to install and manage PHP versions, switch between them seamlessly, and work with multiple versions on your system.
-
-### Key Features
-
-- Install and use different PHP versions.
-- Easily switch between installed PHP versions.
-- List installed PHP versions.
-- Uninstall a specific PHP version.
+- Install and manage multiple PHP versions.
+- Seamlessly switch between installed PHP versions.
+- Auto-switch PHP versions based on project `.phpvmrc`.
+- Supports macOS (via Homebrew) and Linux distributions.
+- Works with common shells (`bash`, `zsh`).
 
 ## Installation
 
-### Install & Update Script
+### Install & Update phpvm
 
-To **install** or **update** phpvm, run the following command using either `curl` or `wget`:
+To **install** or **update** phpvm, run one of the following commands:
 
 ```sh
 curl -o- https://raw.githubusercontent.com/Thavarshan/phpvm/main/bin/install.sh | bash
 ```
 
 ```sh
-wget -qO- https://raw.githubusercontent.com/Thavarshan/phpvm/main/bin/install | bash
+wget -qO- https://raw.githubusercontent.com/Thavarshan/phpvm/main/bin/install.sh | bash
 ```
 
-This script clones the `phpvm` repository into `~/.phpvm` and attempts to add the following lines to your profile (`~/.bashrc`, `~/.zshrc`, or `~/.profile`):
+This script will download and set up `phpvm` in `~/.phpvm`, adding the following to your shell profile (`~/.bashrc`, `~/.zshrc`, or `~/.profile`):
 
 ```sh
 export PHPVM_DIR="$HOME/.phpvm"
-export PATH="$HOME/.local/bin:$PATH"
+source "$PHPVM_DIR/phpvm"
 ```
 
 ### Verify Installation
 
-To verify that `phpvm` has been installed, run the following command:
+Run the following command:
 
 ```sh
 command -v phpvm
 ```
 
-This should output `phpvm` if the installation was successful.
-
-### Manual Install
-
-To manually install `phpvm`, clone the repository:
-
-```sh
-git clone https://github.com/Thavarshan/phpvm.git ~/.phpvm
-```
-
-Then add the following lines to your shell's profile (`~/.bashrc`, `~/.zshrc`, etc.):
-
-```sh
-export PHPVM_DIR="$HOME/.phpvm"
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-### Manual Update
-
-To manually update `phpvm` to the latest version, use the following commands:
-
-```sh
-cd ~/.phpvm
-git fetch --tags origin
-git checkout `git describe --abbrev=0 --tags`
-```
+If the installation was successful, it should output `phpvm`.
 
 ## Usage
 
 ### Installing PHP Versions
 
-To install a specific version of PHP, run:
+To install a specific version of PHP:
 
 ```sh
 phpvm install 8.1
 ```
-
-This will install PHP version 8.1.
 
 ### Switching PHP Versions
 
@@ -111,66 +81,61 @@ To switch between installed versions:
 phpvm use 8.0
 ```
 
-This will switch to PHP 8.0. You can verify the active version by running:
+Check the active version:
 
 ```sh
 php -v
 ```
 
+### Auto-Switching PHP Versions
+
+If a `.phpvmrc` file is present in your project directory, `phpvm` will automatically switch to the specified version:
+
+```sh
+echo "8.1" > .phpvmrc
+```
+
+Upon entering the project directory, `phpvm` will switch to PHP 8.1 automatically.
+
 ### Uninstalling PHP Versions
 
-To uninstall a version of PHP:
+To uninstall a specific PHP version:
 
 ```sh
 phpvm uninstall 7.4
 ```
 
-This will uninstall PHP 7.4 from the system.
-
 ### Listing Installed Versions
 
-To list the installed PHP versions:
+To list installed PHP versions:
 
 ```sh
 phpvm list
 ```
 
-This will display all the PHP versions managed by `phpvm`.
-
-## Running Tests
-
-You can run tests using Jest. Install the dependencies and run the following command:
-
-```sh
-npm install
-npm test
-```
-
-This will run all tests defined for `phpvm`.
-
 ## Uninstallation
 
-To manually uninstall `phpvm`, run:
+To completely remove `phpvm`, run:
 
 ```sh
 rm -rf ~/.phpvm
 ```
 
-And remove the following lines from your shell's profile:
+And remove the following lines from your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
 
 ```sh
 export PHPVM_DIR="$HOME/.phpvm"
-export PATH="$HOME/.local/bin:$PATH"
+source "$PHPVM_DIR/phpvm"
 ```
 
 ## Troubleshooting
 
-If you encounter any issues with `phpvm` or its functionality, consider the following troubleshooting steps:
+If you experience issues with `phpvm`, try the following:
 
-- Make sure your shell configuration file is correctly sourcing `phpvm`.
-- For macOS, ensure that the necessary command line tools (like Homebrew or Xcode) are installed.
-- Restart your terminal after making any changes.
-- Ensure you have proper permissions to install PHP versions and modify system paths.
+- Ensure your shell profile is sourcing `phpvm`.
+- Restart your terminal after installation.
+- Make sure Homebrew is installed (for macOS users).
+- Check for permission issues when installing PHP versions.
 
 ## Maintainers
 
@@ -178,10 +143,8 @@ If you encounter any issues with `phpvm` or its functionality, consider the foll
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](./LICENSE) for more details.
+This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
 
 ## Disclaimer
 
-`phpvm` is an open-source tool designed to simplify PHP version management. While we strive to ensure its functionality across different platforms and configurations, we make no warranties or guarantees regarding its accuracy, completeness, reliability, or suitability for any particular purpose.
-
-**Use at your own risk.** By using `phpvm`, you acknowledge that the developers and contributors are not responsible for any damages or data loss resulting from the installation, configuration, or use of this tool.
+`phpvm` is provided as-is, without any warranties. Use it at your own risk.
