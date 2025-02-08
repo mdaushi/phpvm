@@ -2,11 +2,6 @@
 
 # PHP Version Manager (phpvm)
 
-[![Version](https://img.shields.io/badge/version-v0.0.1-yellow.svg)](https://github.com/Thavarshan/phpvm/releases)
-[![Tests](https://github.com/Thavarshan/phpvm/actions/workflows/test.yml/badge.svg?label=test&branch=main)](https://github.com/Thavarshan/phpvm/actions/workflows/test.yml)
-[![Build](https://github.com/Thavarshan/phpvm/actions/workflows/use.yml/badge.svg?label=build&branch=main)](https://github.com/Thavarshan/phpvm/actions/workflows/use.yml)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-
 ## Introduction
 
 `phpvm` is a lightweight PHP Version Manager that allows you to easily install, switch between, and manage multiple PHP versions via the command line.
