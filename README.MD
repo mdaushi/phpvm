@@ -26,6 +26,8 @@ PHP 8.1.13
 - Auto-switch PHP versions based on project `.phpvmrc`.
 - Supports macOS (via Homebrew) and Linux distributions.
 - Works with common shells (`bash`, `zsh`).
+- Improved error handling and informative, color-coded feedback.
+- Includes unit tests with BATS for automated testing.
 
 ## Installation
 
@@ -41,11 +43,11 @@ curl -o- https://raw.githubusercontent.com/Thavarshan/phpvm/main/install.sh | ba
 wget -qO- https://raw.githubusercontent.com/Thavarshan/phpvm/main/install.sh | bash
 ```
 
-This script will download and set up `phpvm` in `~/.phpvm`, adding the following to your shell profile (`~/.bashrc`, `~/.zshrc`, or `~/.profile`):
+This script will download and set up `phpvm` in `~/.phpvm` and automatically update your shell profile (`~/.bashrc`, `~/.zshrc`, or `~/.profile`) with the following lines:
 
 ```sh
 export PHPVM_DIR="$HOME/.phpvm"
-source "$PHPVM_DIR/phpvm"
+source "$PHPVM_DIR/phpvm.sh"
 ```
 
 ### Verify Installation
@@ -56,7 +58,7 @@ Run the following command:
 command -v phpvm
 ```
 
-If the installation was successful, it should output `phpvm`.
+If the installation was successful, it should output the path to `phpvm`.
 
 ## Usage
 
@@ -76,7 +78,7 @@ To switch between installed versions:
 phpvm use 8.0
 ```
 
-Check the active version:
+Verify the active version with:
 
 ```sh
 php -v
@@ -84,13 +86,13 @@ php -v
 
 ### Auto-Switching PHP Versions
 
-If a `.phpvmrc` file is present in your project directory, `phpvm` will automatically switch to the specified version:
+Create a `.phpvmrc` file in your project directory to specify the desired PHP version:
 
 ```sh
 echo "8.1" > .phpvmrc
 ```
 
-Upon entering the project directory, `phpvm` will switch to PHP 8.1 automatically.
+When you navigate to that project directory, `phpvm` will automatically switch to PHP 8.1.
 
 ### Uninstalling PHP Versions
 
@@ -116,21 +118,27 @@ To completely remove `phpvm`, run:
 rm -rf ~/.phpvm
 ```
 
-And remove the following lines from your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
+Then remove the following lines from your shell profile (`~/.bashrc`, `~/.zshrc`, or `~/.profile`):
 
 ```sh
 export PHPVM_DIR="$HOME/.phpvm"
-source "$PHPVM_DIR/phpvm"
+source "$PHPVM_DIR/phpvm.sh"
 ```
 
 ## Troubleshooting
 
 If you experience issues with `phpvm`, try the following:
 
-- Ensure your shell profile is sourcing `phpvm`.
-- Restart your terminal after installation.
-- Make sure Homebrew is installed (for macOS users).
-- Check for permission issues when installing PHP versions.
+- Ensure your shell profile is sourcing `phpvm.sh`.
+- Restart your terminal after installing or updating.
+- Verify that Homebrew is installed (for macOS users).
+- Check for permission issues during the installation or PHP version switching process.
+- Refer to the [Changelog](./CHANGELOG.md) for recent updates and fixes.
+
+## Development & Testing
+
+- This project includes a set of BATS unit tests located in the repository (e.g., `test_phpvm.bats`).
+- Contributions, bug reports, and feature requests are welcome.
 
 ## Maintainers
 
@@ -142,4 +150,5 @@ This project is licensed under the MIT License. See [LICENSE](./LICENSE) for det
 
 ## Disclaimer
 
-`phpvm` is provided as-is, without any warranties. Use it at your own risk.
+`phpvm` is provided as-is without any warranties. Use it at your own risk.
+```
