@@ -5,89 +5,36 @@ on:
     branches:
       - main
   pull_request:
-    branches:
-      - main
 
 jobs:
   use:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        platform: [intel, arm]
+    runs-on: ubuntu-latest
 
     steps:
-      # Checkout the code
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      # Cache Node.js dependencies
-      - name: Cache Node.js modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      # Set up Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '16'
-
-      # Install dependencies
-      - name: Install dependencies
-        run: npm install
-
-      # Matrix conditional setup for different OS/Platforms
-      - name: Setup Platform Details
+      - name: Install Homebrew
         run: |
-          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            if [[ "${{ matrix.platform }}" == "arm" ]]; then
-              sudo apt-get update
-              sudo apt-get install -y build-essential libxml2-dev
-            fi
-          fi
-          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            if [[ "${{ matrix.platform }}" == "arm" ]]; then
-              echo "Simulating Apple Silicon scenario"
-            else
-              echo "Simulating Intel Mac scenario"
-            fi
-          fi
+          sudo apt update
+          sudo apt install -y build-essential curl file git
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
-      # Install PHP on Ubuntu
-      - name: Install PHP on Ubuntu
-        if: matrix.os == 'ubuntu-latest'
+      - name: Install PHP using PHPVM
         run: |
-          sudo apt-get update
-          sudo apt-get install -y php
+          chmod +x phpvm.sh
+          ./phpvm.sh install 8.3
 
-      # Install PHP on macOS
-      - name: Install PHP on macOS
-        if: matrix.os == 'macos-latest'
+      - name: Switch PHP Version
         run: |
-          brew update && brew install php
+          ./phpvm.sh use 8.3
 
-      # Run the PHP version manager (Install Test)
-      - name: Run PHP Version Manager Install (Download Test)
+      - name: List Installed PHP Versions
         run: |
-          node ./lib/commands/install.js 7.4.10
+          ./phpvm.sh list
 
-      # Check if PHP is installed and verify its version
-      - name: Verify PHP Installation
-        run: |
-          php -v
-
-      # Simulate failed download and fallback to package manager
-      - name: Simulate Failed Download and Fallback
-        run: |
-          node ./lib/commands/install.js non-existent-version
-        continue-on-error: true
-
-      # Verify PHP Version Manager fallback handling
-      - name: Check if fallback worked
+      - name: Verify PHP Version
         run: |
           php -v
