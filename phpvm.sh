@@ -10,110 +10,121 @@ HOMEBREW_PHP_CELLAR="/opt/homebrew/Cellar"
 HOMEBREW_PHP_BIN="/opt/homebrew/bin"
 
 # Create the required directory and exit if it fails.
-mkdir -p "$PHPVM_VERSIONS_DIR" || { echo "Error: Failed to create directory $PHPVM_VERSIONS_DIR" >&2; exit 1; }
+mkdir -p "$PHPVM_VERSIONS_DIR" || {
+    echo "Error: Failed to create directory $PHPVM_VERSIONS_DIR" >&2
+    exit 1
+}
 
 # ANSI color codes
 RED="\e[31m"
 GREEN="\e[32m"
 YELLOW="\e[33m"
-# Removed BLUE as it is unused
 RESET="\e[0m"
 
-# Output functions for better readability and robust error checking.
-phpvm_echo() {
-    if ! command printf "%b%s%b\n" "$GREEN" "$*" "$RESET"; then
-        echo "Error: Failed in phpvm_echo" >&2
+# Output functions
+phpvm_echo() { printf "%b%s%b\n" "$GREEN" "$*" "$RESET"; }
+phpvm_err() { printf "%bError: %s%b\n" "$RED" "$*" "$RESET" >&2; }
+phpvm_warn() { printf "%bWarning: %s%b\n" "$YELLOW" "$*" "$RESET" >&2; }
+
+# Helper function to check if Homebrew is installed
+is_brew_installed() {
+    command -v brew &>/dev/null
+}
+
+# Helper function to install PHP using Homebrew
+brew_install_php() {
+    local version=$1
+    if ! brew install php@"$version"; then
+        phpvm_warn "php@$version is not available in Homebrew. Trying latest version..."
+        if ! brew install php; then
+            phpvm_err "Failed to install PHP."
+            return 1
+        fi
+    fi
+    return 0
+}
+
+# Helper function to get the installed PHP version
+get_installed_php_version() {
+    if command -v php-config &>/dev/null; then
+        php-config --version
+    else
+        php -v | awk '/^PHP/ {print $2}'
     fi
 }
 
-phpvm_err() {
-    command >&2 printf "%bError: %s%b\n" "$RED" "$*" "$RESET"
-}
-
-phpvm_warn() {
-    command >&2 printf "%bWarning: %s%b\n" "$YELLOW" "$*" "$RESET"
-}
-
-# Function to install a specific PHP version with error handling.
 install_php() {
     local version=$1
-    if [[ -z $version ]]; then
-         phpvm_err "No PHP version specified for installation."
-         return 1
-    fi
+    [[ -z $version ]] && {
+        phpvm_err "No PHP version specified for installation."
+        return 1
+    }
 
     phpvm_echo "Installing PHP $version..."
-
-    if command -v brew &>/dev/null; then
-        if ! brew install php@"$version"; then
-            phpvm_err "Failed to install PHP $version via Homebrew."
-            return 1
-        fi
-    elif command -v apt-get &>/dev/null; then
-        if ! sudo apt-get update; then
-            phpvm_err "apt-get update failed."
-            return 1
-        fi
-        if ! sudo apt-get install -y php"$version"; then
-            phpvm_err "Failed to install PHP $version via apt-get."
-            return 1
-        fi
-    elif command -v dnf &>/dev/null; then
-        if ! sudo dnf install -y php; then
-            phpvm_err "Failed to install PHP via dnf."
-            return 1
-        fi
+    if is_brew_installed; then
+        brew_install_php "$version" || return 1
     else
-        phpvm_err "Unsupported Linux distribution."
+        phpvm_err "Unsupported package manager. Please install PHP manually."
         return 1
     fi
     phpvm_echo "PHP $version installed."
     return 0
 }
 
-# Function to switch to a specific PHP version with robust error handling.
 use_php_version() {
     local version=$1
-    if [[ -z $version ]]; then
-         phpvm_err "No PHP version specified to switch."
-         return 1
-    fi
+    [[ -z $version ]] && {
+        phpvm_err "No PHP version specified to switch."
+        return 1
+    }
 
     phpvm_echo "Switching to PHP $version..."
+    if is_brew_installed; then
+        if [[ -d "$HOMEBREW_PHP_CELLAR/php@$version" ]]; then
+            brew unlink php &>/dev/null || phpvm_warn "Failed to unlink current PHP version."
+            brew link php@"$version" --force --overwrite || {
+                phpvm_err "Failed to link PHP $version."
+                return 1
+            }
+        elif [[ -d "$HOMEBREW_PHP_CELLAR/php" ]]; then
+            local installed_version
+            installed_version=$(get_installed_php_version)
 
-    if command -v brew &>/dev/null && [[ -d "$HOMEBREW_PHP_CELLAR/php@$version" ]]; then
-        if ! brew unlink php &>/dev/null; then
-            phpvm_warn "Failed to unlink current PHP version. Continuing..."
-        fi
-        if ! brew link php@"$version" --force --overwrite; then
-            phpvm_err "Failed to link PHP $version."
+            if [[ "$installed_version" == "$version"* ]]; then
+                phpvm_echo "Using PHP $version installed as 'php'."
+            else
+                phpvm_err "PHP version $version is not installed."
+                return 1
+            fi
+        else
+            phpvm_err "PHP version $version is not installed."
             return 1
         fi
-        if ! ln -sfn "$HOMEBREW_PHP_BIN/php" "$PHPVM_CURRENT_SYMLINK"; then
-            phpvm_err "Failed to update current symlink."
+        ln -sfn "$HOMEBREW_PHP_BIN/php" "$PHPVM_CURRENT_SYMLINK" || {
+            phpvm_err "Failed to update symlink."
             return 1
-        fi
-        if ! echo "$version" > "$PHPVM_ACTIVE_VERSION_FILE"; then
-            phpvm_err "Failed to write active version to file."
+        }
+        echo "$version" >"$PHPVM_ACTIVE_VERSION_FILE" || {
+            phpvm_err "Failed to write active version."
             return 1
-        fi
+        }
         phpvm_echo "Switched to PHP $version."
-        return 0
     else
-        phpvm_err "PHP version $version is not installed in Homebrew Cellar."
+        phpvm_err "Homebrew is not installed."
         return 1
     fi
 }
 
-# Function to auto-switch PHP version based on the .phpvmrc file with error handling.
 auto_switch_php_version() {
     local current_dir="$PWD"
     local found=0
+    local depth=0
+    local max_depth=5
 
-    while [[ "$current_dir" != "/" ]]; do
+    while [[ "$current_dir" != "/" && $depth -lt $max_depth ]]; do
         if [[ -f "$current_dir/.phpvmrc" ]]; then
             local version
-            if ! version=$(cat "$current_dir/.phpvmrc" 2>/dev/null | tr -d '[:space:]'); then
+            if ! version=$(tr -d '[:space:]' <"$current_dir/.phpvmrc"); then
                 phpvm_err "Failed to read $current_dir/.phpvmrc"
                 return 1
             fi
@@ -125,11 +136,13 @@ auto_switch_php_version() {
                 fi
             else
                 phpvm_warn "No valid PHP version found in $current_dir/.phpvmrc."
+                return 1
             fi
             found=1
             break
         fi
         current_dir=$(dirname "$current_dir")
+        ((depth++))
     done
 
     if [[ $found -eq 0 ]]; then
@@ -138,62 +151,3 @@ auto_switch_php_version() {
     fi
     return 0
 }
-
-# Stub function for uninstalling PHP. Added error handling.
-uninstall_php() {
-    local version=$1
-    if [[ -z "$version" ]]; then
-       phpvm_err "No PHP version specified for uninstallation."
-       return 1
-    fi
-    # Placeholder for actual uninstallation logic.
-    phpvm_warn "Uninstall PHP $version is not yet implemented."
-    return 1
-}
-
-# Stub function for listing installed PHP versions. Added error handling.
-list_php_versions() {
-    # Placeholder for PHP version listing logic.
-    phpvm_echo "Listing installed PHP versions is not yet implemented."
-    return 1
-}
-
-# Prevent execution when sourced.
-if [[ "$0" == "${BASH_SOURCE[0]}" ]]; then
-    case "$1" in
-    install)
-        if ! install_php "$2"; then
-            phpvm_err "Installation failed."
-            exit 1
-        fi
-        ;;
-    uninstall)
-        if ! uninstall_php "$2"; then
-            phpvm_err "Uninstallation failed."
-            exit 1
-        fi
-        ;;
-    list)
-        if ! list_php_versions; then
-            phpvm_err "Listing PHP versions failed."
-            exit 1
-        fi
-        ;;
-    use)
-        if ! use_php_version "$2"; then
-            phpvm_err "Switching PHP version failed."
-            exit 1
-        fi
-        ;;
-    autoswitch)
-        if ! auto_switch_php_version; then
-            phpvm_err "Auto-switching PHP version failed."
-            exit 1
-        fi
-        ;;
-    *)
-        phpvm_echo "Usage: phpvm {install|uninstall|list|use|autoswitch} <version>"
-        exit 1
-        ;;
-    esac
-fi

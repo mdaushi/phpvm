@@ -12,35 +12,13 @@ setup() {
   PATH="$MOCK_DIR:$PATH"
 
   # Create a dummy 'brew' command
-  cat << 'EOF' > "$MOCK_DIR/brew"
+  cat <<'EOF' >"$MOCK_DIR/brew"
 #!/bin/bash
 # Simply print the arguments to verify the call.
 echo "brew $*"
 exit 0
 EOF
   chmod +x "$MOCK_DIR/brew"
-
-  # Create a dummy 'apt-get' command
-  cat << 'EOF' > "$MOCK_DIR/apt-get"
-#!/bin/bash
-if [[ $1 == "update" ]]; then
-  echo "apt-get update"
-  exit 0
-fi
-if [[ $1 == "install" ]]; then
-  echo "apt-get install $*"
-  exit 0
-fi
-EOF
-  chmod +x "$MOCK_DIR/apt-get"
-
-  # Create a dummy 'dnf' command
-  cat << 'EOF' > "$MOCK_DIR/dnf"
-#!/bin/bash
-echo "dnf $*"
-exit 0
-EOF
-  chmod +x "$MOCK_DIR/dnf"
 }
 
 teardown() {
@@ -79,9 +57,9 @@ teardown() {
 @test "auto_switch_php_version warns when .phpvmrc is not found" {
   # Run from a temporary directory that does not contain .phpvmrc.
   TEST_DIR="$(mktemp -d)"
-  pushd "$TEST_DIR" > /dev/null
+  pushd "$TEST_DIR" >/dev/null
   run auto_switch_php_version
-  popd > /dev/null
+  popd >/dev/null
   [ "$status" -ne 0 ]
   [[ "$output" == *"No .phpvmrc file found"* ]]
 }
@@ -89,15 +67,15 @@ teardown() {
 @test "auto_switch_php_version switches PHP version from .phpvmrc" {
   # Create a temporary directory with a .phpvmrc file
   TEST_DIR="$(mktemp -d)"
-  echo "7.4" > "$TEST_DIR/.phpvmrc"
-  
+  echo "7.4" >"$TEST_DIR/.phpvmrc"
+
   # Create a fake Homebrew cellar directory to simulate an installed PHP version.
   mkdir -p "/opt/homebrew/Cellar/php@7.4"
-  
-  pushd "$TEST_DIR" > /dev/null
+
+  pushd "$TEST_DIR" >/dev/null
   run auto_switch_php_version
-  popd > /dev/null
-  
+  popd >/dev/null
+
   [ "$status" -eq 0 ]
   [[ "$output" == *"Auto-switching to PHP 7.4"* ]]
 }
