@@ -62,8 +62,14 @@ else
     SHELL_PROFILE="$HOME/.profile"
 fi
 
+# Ensure the shell profile file exists
+if [[ ! -f "$SHELL_PROFILE" ]]; then
+    phpvm_warn "$SHELL_PROFILE not found. Creating it..."
+    touch "$SHELL_PROFILE"
+fi
+
 # Ensure phpvm is in the PATH
-if [ -f "$SHELL_PROFILE" ] && ! grep -q "export PATH=\"$PHPVM_DIR/bin:\$PATH\"" "$SHELL_PROFILE" 2>/dev/null; then
+if ! grep -q "export PATH=\"$PHPVM_DIR/bin:\$PATH\"" "$SHELL_PROFILE" 2>/dev/null; then
     phpvm_echo "Adding phpvm to PATH in $SHELL_PROFILE..."
     {
         echo ""
@@ -78,7 +84,7 @@ else
 fi
 
 # Source phpvm in the shell profile if not already present
-if [ -f "$SHELL_PROFILE" ] && ! grep -q "source \"$PHPVM_SCRIPT\"" "$SHELL_PROFILE" 2>/dev/null; then
+if ! grep -q "source \"$PHPVM_SCRIPT\"" "$SHELL_PROFILE" 2>/dev/null; then
     phpvm_echo "Adding phpvm to $SHELL_PROFILE..."
     {
         echo ""
@@ -97,7 +103,15 @@ fi
 # Apply changes immediately
 phpvm_echo "Applying changes..."
 export PATH="$PHPVM_DIR/bin:$PATH"
-source "$SHELL_PROFILE"
+
+# Source the profile properly
+if [[ "$SHELL_PROFILE" == "$HOME/.zshrc" ]]; then
+    source "$HOME/.zshrc" || phpvm_warn "Could not source ~/.zshrc. Restart your terminal."
+elif [[ "$SHELL_PROFILE" == "$HOME/.bashrc" ]]; then
+    source "$HOME/.bashrc" || phpvm_warn "Could not source ~/.bashrc. Restart your terminal."
+else
+    source "$HOME/.profile" || phpvm_warn "Could not source ~/.profile. Restart your terminal."
+fi
 
 phpvm_echo "phpvm installation complete!"
 phpvm_echo "You can now use phpvm immediately."
