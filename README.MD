@@ -156,5 +156,3 @@ This project is licensed under the MIT License. See [LICENSE](./LICENSE) for det
 ## Disclaimer
 
 `phpvm` is provided as-is without any warranties. Use it at your own risk.
-
-```
