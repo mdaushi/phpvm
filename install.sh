@@ -40,19 +40,21 @@ if ! mkdir -p "$PHPVM_DIR/bin"; then
     exit 1
 fi
 
+# Download phpvm script
 phpvm_echo "Downloading phpvm script from $GITHUB_REPO_URL..."
 if ! curl -fsSL "$GITHUB_REPO_URL" -o "$PHPVM_SCRIPT"; then
     phpvm_err "Download failed. Please check your internet connection and URL."
     exit 1
 fi
 
+# Make the script executable
 if ! chmod +x "$PHPVM_SCRIPT"; then
     phpvm_err "Failed to make the phpvm script executable."
     exit 1
 fi
 
 # Determine user's shell profile
-if [[ "$SHELL" == *"zsh"* ]]; then
+if [[ "${ZSH_VERSION:-}" ]]; then
     SHELL_PROFILE="$HOME/.zshrc"
 elif [[ "$SHELL" == *"bash"* ]]; then
     SHELL_PROFILE="$HOME/.bashrc"
