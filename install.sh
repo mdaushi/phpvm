@@ -68,6 +68,15 @@
         echo "$DETECTED_PROFILE"
     }
 
+    phpvm_check_write_permission() {
+        local DIR="$1"
+        if [ -w "$DIR" ]; then
+            return 0
+        else
+            return 1
+        fi
+    }
+
     install_phpvm_as_script() {
         local INSTALL_DIR
         INSTALL_DIR="$(phpvm_install_dir)"
@@ -77,7 +86,13 @@
         phpvm_download -fsSL "$GITHUB_REPO_URL" -o "$INSTALL_DIR/phpvm.sh"
         chmod +x "$INSTALL_DIR/phpvm.sh"
         ln -sf "$INSTALL_DIR/phpvm.sh" "$INSTALL_DIR/bin/phpvm"
-        ln -sf "$INSTALL_DIR/phpvm.sh" "/usr/local/bin/phpvm"
+
+        if phpvm_check_write_permission "/usr/local/bin"; then
+            ln -sf "$INSTALL_DIR/phpvm.sh" "/usr/local/bin/phpvm"
+        else
+            phpvm_warn "No write permission for /usr/local/bin, using sudo to create symlink."
+            sudo ln -sf "$INSTALL_DIR/phpvm.sh" "/usr/local/bin/phpvm"
+        fi
     }
 
     phpvm_do_install() {
