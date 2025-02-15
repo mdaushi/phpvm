@@ -35,8 +35,8 @@ fi
 phpvm_echo "Installing phpvm..."
 
 # Create phpvm directory if it doesn't exist
-if ! mkdir -p "$PHPVM_DIR"; then
-    phpvm_err "Failed to create directory: $PHPVM_DIR"
+if ! mkdir -p "$PHPVM_DIR/bin"; then
+    phpvm_err "Failed to create directory: $PHPVM_DIR/bin"
     exit 1
 fi
 
@@ -60,7 +60,22 @@ else
     SHELL_PROFILE="$HOME/.profile"
 fi
 
-# Add phpvm to shell profile if not already present
+# Ensure phpvm is in the PATH
+if ! grep -q "export PATH=\"$PHPVM_DIR/bin:\$PATH\"" "$SHELL_PROFILE" 2>/dev/null; then
+    phpvm_echo "Adding phpvm to PATH in $SHELL_PROFILE..."
+    {
+        echo ""
+        echo "# phpvm PATH"
+        echo "export PATH=\"$PHPVM_DIR/bin:\$PATH\""
+    } >>"$SHELL_PROFILE" || {
+        phpvm_err "Failed to update $SHELL_PROFILE"
+        exit 1
+    }
+else
+    phpvm_warn "phpvm PATH is already set in $SHELL_PROFILE"
+fi
+
+# Source phpvm in the shell profile if not already present
 if ! grep -q "source \"$PHPVM_SCRIPT\"" "$SHELL_PROFILE" 2>/dev/null; then
     phpvm_echo "Adding phpvm to $SHELL_PROFILE..."
     {
@@ -69,11 +84,19 @@ if ! grep -q "source \"$PHPVM_SCRIPT\"" "$SHELL_PROFILE" 2>/dev/null; then
         echo "if [ -f \"$PHPVM_SCRIPT\" ]; then"
         echo "    source \"$PHPVM_SCRIPT\""
         echo "fi"
-    } >> "$SHELL_PROFILE" || { phpvm_err "Failed to update $SHELL_PROFILE"; exit 1; }
+    } >>"$SHELL_PROFILE" || {
+        phpvm_err "Failed to update $SHELL_PROFILE"
+        exit 1
+    }
 else
     phpvm_warn "phpvm is already configured in $SHELL_PROFILE"
 fi
 
+# Apply changes immediately
+phpvm_echo "Applying changes..."
+export PATH="$PHPVM_DIR/bin:$PATH"
+source "$SHELL_PROFILE"
+
 phpvm_echo "phpvm installation complete!"
-phpvm_echo "Restart your terminal or run:"
-phpvm_echo "source $SHELL_PROFILE"
+phpvm_echo "You can now use phpvm immediately."
+phpvm_echo "Run: phpvm use 8.4"
