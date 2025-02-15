@@ -101,7 +101,7 @@ use_php_version() {
     else
         phpvm_err "PHP version $version is not installed."
         return 1
-    fi
+    }
     phpvm_debug "Updating symlink to PHP $version..."
     rm -f "$PHPVM_CURRENT_SYMLINK"
     ln -s "$HOMEBREW_PHP_BIN/php" "$PHPVM_CURRENT_SYMLINK" || {
@@ -113,6 +113,43 @@ use_php_version() {
         return 1
     }
     phpvm_echo "Switched to PHP $version."
+}
+
+auto_switch_php_version() {
+    local current_dir="$PWD"
+    local found=0
+    local depth=0
+    local max_depth=5
+
+    while [ "$current_dir" != "/" ] && [ $depth -lt $max_depth ]; do
+        if [ -f "$current_dir/.phpvmrc" ]; then
+            local version
+            if ! version=$(tr -d '[:space:]' <"$current_dir/.phpvmrc"); then
+                phpvm_err "Failed to read $current_dir/.phpvmrc"
+                return 1
+            fi
+            if [ -n "$version" ]; then
+                phpvm_echo "Auto-switching to PHP $version (from $current_dir/.phpvmrc)"
+                if ! use_php_version "$version"; then
+                    phpvm_err "Failed to switch to PHP $version from $current_dir/.phpvmrc"
+                    return 1
+                fi
+            else
+                phpvm_warn "No valid PHP version found in $current_dir/.phpvmrc."
+                return 1
+            fi
+            found=1
+            break
+        fi
+        current_dir=$(dirname "$current_dir")
+        depth=$((depth + 1))
+    done
+
+    if [ $found -eq 0 ]; then
+        phpvm_warn "No .phpvmrc file found in the current or parent directories."
+        return 1
+    fi
+    return 0
 }
 
 main() {
@@ -136,6 +173,9 @@ main() {
             return 1
         fi
         install_php "$@"
+        ;;
+    auto)
+        auto_switch_php_version
         ;;
     *)
         phpvm_err "Unknown command: $command. Available commands: install <version>, use <version>."
