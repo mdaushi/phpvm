@@ -54,7 +54,7 @@ if ! chmod +x "$PHPVM_SCRIPT"; then
 fi
 
 # Determine user's shell profile
-if [[ "${ZSH_VERSION:-}" ]]; then
+if [[ -n "${ZSH_VERSION:-}" ]] || [[ "$SHELL" == *"zsh"* ]]; then
     SHELL_PROFILE="$HOME/.zshrc"
 elif [[ "$SHELL" == *"bash"* ]]; then
     SHELL_PROFILE="$HOME/.bashrc"
@@ -63,7 +63,7 @@ else
 fi
 
 # Ensure phpvm is in the PATH
-if ! grep -q "export PATH=\"$PHPVM_DIR/bin:\$PATH\"" "$SHELL_PROFILE" 2>/dev/null; then
+if [ -f "$SHELL_PROFILE" ] && ! grep -q "export PATH=\"$PHPVM_DIR/bin:\$PATH\"" "$SHELL_PROFILE" 2>/dev/null; then
     phpvm_echo "Adding phpvm to PATH in $SHELL_PROFILE..."
     {
         echo ""
@@ -78,7 +78,7 @@ else
 fi
 
 # Source phpvm in the shell profile if not already present
-if ! grep -q "source \"$PHPVM_SCRIPT\"" "$SHELL_PROFILE" 2>/dev/null; then
+if [ -f "$SHELL_PROFILE" ] && ! grep -q "source \"$PHPVM_SCRIPT\"" "$SHELL_PROFILE" 2>/dev/null; then
     phpvm_echo "Adding phpvm to $SHELL_PROFILE..."
     {
         echo ""
