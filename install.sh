@@ -6,6 +6,7 @@ set -euo pipefail
 
 PHPVM_DIR="$HOME/.phpvm"
 PHPVM_SCRIPT="$PHPVM_DIR/phpvm.sh"
+PHPVM_COMPLETION="$PHPVM_DIR/phpvm_completion.sh"
 GITHUB_REPO_URL="https://raw.githubusercontent.com/Thavarshan/phpvm/main/phpvm.sh"
 
 # ANSI color codes
@@ -62,36 +63,14 @@ else
     SHELL_PROFILE="$HOME/.profile"
 fi
 
-# Ensure the shell profile file exists
-if [[ ! -f "$SHELL_PROFILE" ]]; then
-    phpvm_warn "$SHELL_PROFILE not found. Creating it..."
-    touch "$SHELL_PROFILE"
-fi
-
-# Ensure phpvm is in the PATH
-if ! grep -q "export PATH=\"$PHPVM_DIR/bin:\$PATH\"" "$SHELL_PROFILE" 2>/dev/null; then
-    phpvm_echo "Adding phpvm to PATH in $SHELL_PROFILE..."
+# Ensure phpvm is loaded in the shell
+if [ -f "$SHELL_PROFILE" ] && ! grep -q "\[\[ -s \"$PHPVM_SCRIPT\" \]\] && source \"$PHPVM_SCRIPT\"" "$SHELL_PROFILE" 2>/dev/null; then
+    phpvm_echo "Adding phpvm loader to $SHELL_PROFILE..."
     {
         echo ""
-        echo "# phpvm PATH"
-        echo "export PATH=\"$PHPVM_DIR/bin:\$PATH\""
-    } >>"$SHELL_PROFILE" || {
-        phpvm_err "Failed to update $SHELL_PROFILE"
-        exit 1
-    }
-else
-    phpvm_warn "phpvm PATH is already set in $SHELL_PROFILE"
-fi
-
-# Source phpvm in the shell profile if not already present
-if ! grep -q "source \"$PHPVM_SCRIPT\"" "$SHELL_PROFILE" 2>/dev/null; then
-    phpvm_echo "Adding phpvm to $SHELL_PROFILE..."
-    {
-        echo ""
-        echo "# Load phpvm"
-        echo "if [ -f \"$PHPVM_SCRIPT\" ]; then"
-        echo "    source \"$PHPVM_SCRIPT\""
-        echo "fi"
+        echo "# Load phpvm automatically"
+        echo "[[ -s \"$PHPVM_SCRIPT\" ]] && source \"$PHPVM_SCRIPT\""
+        echo "[[ -s \"$PHPVM_COMPLETION\" ]] && source \"$PHPVM_COMPLETION\""
     } >>"$SHELL_PROFILE" || {
         phpvm_err "Failed to update $SHELL_PROFILE"
         exit 1
@@ -103,7 +82,7 @@ fi
 # Apply changes immediately
 phpvm_echo "Applying changes..."
 export PATH="$PHPVM_DIR/bin:$PATH"
-source "$PHPVM_SCRIPT"
+source "$SHELL_PROFILE"
 
 phpvm_echo "phpvm installation complete!"
 phpvm_echo "You can now use phpvm immediately."
