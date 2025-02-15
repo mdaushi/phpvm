@@ -54,6 +54,12 @@ if ! chmod +x "$PHPVM_SCRIPT"; then
     exit 1
 fi
 
+# Link the phpvm script to the bin directory
+if ! ln -sf "$PHPVM_SCRIPT" "$PHPVM_DIR/bin/phpvm"; then
+    phpvm_err "Failed to create symlink for phpvm."
+    exit 1
+fi
+
 # Determine user's shell profile
 if [[ -n "${ZSH_VERSION:-}" ]] || [[ "$SHELL" == *"zsh"* ]]; then
     SHELL_PROFILE="$HOME/.zshrc"
