@@ -1,5 +1,10 @@
 [![PHP Version Manager (phpvm)](./assets/Banner.jpg)](https://github.com/Thavarshan/phpvm)
 
+[![Test](https://github.com/Thavarshan/phpvm/actions/workflows/test.yml/badge.svg)](https://github.com/Thavarshan/phpvm/actions/workflows/test.yml)
+[![Use](https://github.com/Thavarshan/phpvm/actions/workflows/use.yml/badge.svg)](https://github.com/Thavarshan/phpvm/actions/workflows/use.yml)
+[![Version](https://img.shields.io/github/v/release/Thavarshan/phpvm.svg)](https://github.com/Thavarshan/phpvm/releases)
+[![GitHub stars](https://img.shields.io/github/stars/Thavarshan/phpvm.svg)](https://github.com/Thavarshan/phpvm/stargazers)
+
 # PHP Version Manager (phpvm)
 
 ## Introduction
@@ -151,4 +156,5 @@ This project is licensed under the MIT License. See [LICENSE](./LICENSE) for det
 ## Disclaimer
 
 `phpvm` is provided as-is without any warranties. Use it at your own risk.
+
 ```
