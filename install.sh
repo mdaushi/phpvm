@@ -103,15 +103,7 @@ fi
 # Apply changes immediately
 phpvm_echo "Applying changes..."
 export PATH="$PHPVM_DIR/bin:$PATH"
-
-# Source the profile properly
-if [[ "$SHELL_PROFILE" == "$HOME/.zshrc" ]]; then
-    source "$HOME/.zshrc" || phpvm_warn "Could not source ~/.zshrc. Restart your terminal."
-elif [[ "$SHELL_PROFILE" == "$HOME/.bashrc" ]]; then
-    source "$HOME/.bashrc" || phpvm_warn "Could not source ~/.bashrc. Restart your terminal."
-else
-    source "$HOME/.profile" || phpvm_warn "Could not source ~/.profile. Restart your terminal."
-fi
+source "$PHPVM_SCRIPT"
 
 phpvm_echo "phpvm installation complete!"
 phpvm_echo "You can now use phpvm immediately."
