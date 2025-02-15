@@ -77,6 +77,7 @@
         phpvm_download -fsSL "$GITHUB_REPO_URL" -o "$INSTALL_DIR/phpvm.sh"
         chmod +x "$INSTALL_DIR/phpvm.sh"
         ln -sf "$INSTALL_DIR/phpvm.sh" "$INSTALL_DIR/bin/phpvm"
+        ln -sf "$INSTALL_DIR/phpvm.sh" "/usr/local/bin/phpvm"
     }
 
     phpvm_do_install() {
